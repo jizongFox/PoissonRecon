@@ -587,8 +587,9 @@ void Execute( const AuxDataFactory &auxDataFactory )
 }
 #endif // !FAST_COMPILE
 
-int main( int argc , char* argv[] )
+int poisson_recon_main( int argc , char* argv[] )
 {
+	for( int i=0 ; params[i] ; i++ ) params[i]->reset();
 	Timer timer;
 #ifdef ARRAY_DEBUG
 	MK_WARN( "Array debugging enabled" );
@@ -671,3 +672,10 @@ int main( int argc , char* argv[] )
 
 	return EXIT_SUCCESS;
 }
+
+#ifndef POISSON_RECON_NO_MAIN
+int main( int argc , char* argv[] )
+{
+	return poisson_recon_main( argc , argv );
+}
+#endif

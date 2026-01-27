@@ -53,6 +53,7 @@ namespace PoissonRecon
 		virtual ~CmdLineReadable( void );
 		virtual int read( char** argv , int argc );
 		virtual void writeValue( char* str ) const;
+		virtual void reset( void ) { set = false; }
 	};
 
 	template< typename Type > struct CmdLineType;
@@ -82,12 +83,14 @@ namespace PoissonRecon
 	{
 	public:
 		Type value;
+		Type defaultValue;
 		CmdLineParameter( const char *name );
 		CmdLineParameter( const char *name , Type v );
 		~CmdLineParameter( void );
 		int read( char** argv , int argc );
 		void writeValue( char* str ) const;
 		bool expectsArg( void ) const { return true; }
+		void reset( void );
 	};
 
 	template< class Type , int Dim >

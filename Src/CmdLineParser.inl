@@ -126,9 +126,12 @@ inline void CmdLineReadable::writeValue( char* str ) const { str[0] = 0; }
 //////////////////////
 // CmdLineParameter //
 //////////////////////
-template< class Type > CmdLineParameter< Type >::~CmdLineParameter( void ) { CmdLineType< Type >::CleanUp( &value ); }
-template< class Type > CmdLineParameter< Type >::CmdLineParameter( const char *name ) : CmdLineReadable( name ){ value = CmdLineType< Type >::Initialize(); }
-template< class Type > CmdLineParameter< Type >::CmdLineParameter( const char *name , Type v ) : CmdLineReadable( name ){ value = CmdLineType< Type >::Copy( v ); }
+template< class Type > CmdLineParameter< Type >::~CmdLineParameter( void ) { CmdLineType< Type >::CleanUp( &value ); CmdLineType< Type >::CleanUp( &defaultValue ); }
+template< class Type > CmdLineParameter< Type >::CmdLineParameter( const char *name ) : CmdLineReadable( name ){ value = defaultValue = CmdLineType< Type >::Initialize(); }
+template< class Type > CmdLineParameter< Type >::CmdLineParameter( const char *name , Type v ) : CmdLineReadable( name )
+{ 
+	value = defaultValue = CmdLineType< Type >::Copy( v ); 
+}
 template< class Type >
 int CmdLineParameter< Type >::read( char** argv , int argc )
 {
@@ -143,6 +146,13 @@ int CmdLineParameter< Type >::read( char** argv , int argc )
 }
 template< class Type >
 void CmdLineParameter< Type >::writeValue( char* str ) const { CmdLineType< Type >::WriteValue( value , str ); }
+template< class Type >
+void CmdLineParameter< Type >::reset( void )
+{
+	CmdLineType< Type >::CleanUp( &value );
+	value = CmdLineType< Type >::Copy( defaultValue );
+	set = false;
+}
 
 
 ///////////////////////////

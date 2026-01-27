@@ -10,3 +10,8 @@
 V*/
 *.user
 Makefile.9
+build/*
+.idea/*
+.vscode
+.jbeval
+build

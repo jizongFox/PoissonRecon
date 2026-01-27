@@ -1,17 +1,28 @@
-PR_TARGET=PoissonRecon
-PRC_TARGET=PoissonReconClient
-PRS_TARGET=PoissonReconServer
-SR_TARGET=SSDRecon
-PI_TARGET=PointInterpolant
-ST_TARGET=SurfaceTrimmer
-EH_TARGET=EDTInHeat
-IS_TARGET=ImageStitching
-AV_TARGET=AdaptiveTreeVisualization
-CP_TARGET=ChunkPLY
-RE_TARGET=ReconExample
-PTD_TARGET=PointsToDisks
-SN_TARGET=ScaleNormals
+# =============================================================================
+# 1. TARGET DEFINITIONS
+# In C++, we produce "binaries" (executables). These variables define the names
+# of the final files we want to generate.
+# Logic: These are like the keys in a dictionary where the value is the filename.
+# =============================================================================
+PR_TARGET=PoissonRecon             # Main Poisson Surface Reconstruction tool
+PRC_TARGET=PoissonReconClient      # Client for distributed reconstruction
+PRS_TARGET=PoissonReconServer      # Server for distributed reconstruction
+SR_TARGET=SSDRecon                 # Smooth Signed Distance reconstruction
+PI_TARGET=PointInterpolant          # Function fitting tool
+ST_TARGET=SurfaceTrimmer           # Post-processing mesh trimmer
+EH_TARGET=EDTInHeat                # Euclidean Distance Transform tool
+IS_TARGET=ImageStitching           # Tool for stitching image tiles
+AV_TARGET=AdaptiveTreeVisualization # Visualization/Iso-surface extraction tool
+CP_TARGET=ChunkPLY                 # Tool for partitioning large meshes
+RE_TARGET=ReconExample             # Example code demonstrating library usage
+PTD_TARGET=PointsToDisks           # Converts points to disk primitives
+SN_TARGET=ScaleNormals             # Scales normal magnitudes by confidence
 
+# =============================================================================
+# 2. SOURCE FILE DEFINITIONS
+# These are the main entry point files (.cpp). In Python, these would be the 
+# scripts you run directly (e.g., `python script.py`).
+# =============================================================================
 PR_SOURCE=PoissonRecon.cpp
 PRC_SOURCE=PoissonReconClient.cpp
 PRS_SOURCE=PoissonReconServer.cpp
@@ -26,41 +37,62 @@ RE_SOURCE=Reconstruction.example.cpp
 PTD_SOURCE=PointsToDisks.cpp
 SN_SOURCE=ScaleNormals.cpp
 
-COMPILER ?= gcc
+# =============================================================================
+# 3. COMPILER AND BUILD FLAGS
+# CFLAGS: Compiled-language specific "settings". Like environment variables for 
+#         the compiler.
+# LFLAGS: "Linker" flags. These tell the program how to find pre-built 
+#         libraries (like Python's `import` but at a binary level).
+# =============================================================================
+
+# "?=" means "set this only if it hasn't been set by an environment variable".
+COMPILER ?= gcc 
 #COMPILER ?= clang
 
+# Conditional logic: Choose flags based on which compiler is being used.
 ifeq ($(COMPILER),gcc)
+	# -fopenmp: Parallel processing (multi-core support).
+	# -std=c++17: The version of the C++ language (like Python 3.10 vs 3.12).
+	# -pthread: Threading support for asynchronous tasks.
 	CFLAGS += -fopenmp -Wno-deprecated -std=c++17 -pthread -Wno-invalid-offsetof
 	LFLAGS += -lgomp -lstdc++ -lpthread
 else ifeq ($(COMPILER),gcc-11)
 	CFLAGS += -fopenmp -Wno-deprecated -std=c++17 -pthread -Wno-invalid-offsetof -Werror=strict-aliasing -Wno-nonnull
 	LFLAGS += -lgomp -lstdc++ -lpthread
 else
-# 	CFLAGS += -fopenmp=libiomp5 -Wno-deprecated -Wno-write-strings -std=c++17 -Wno-invalid-offsetof
-# 	LFLAGS += -liomp5 -lstdc++
+	# Fallback flags for other compilers (like Clang).
 	CFLAGS += -Wno-deprecated -std=c++17 -pthread -Wno-invalid-offsetof -Wno-dangling-else
 	CFLAGS += -Wno-nan-infinity-disabled
 	LFLAGS += -lstdc++
 endif
-LFLAGS_IMG += -lz -lpng -ljpeg
-#LFLAGS += -ljpeg -lmypng -lz
 
+# Image library linking. "-l" stands for "link". 
+# -lz: zlib (compression)
+# -lpng: libpng (images)
+# -ljpeg: libjpeg (images)
+LFLAGS_IMG += -lz -lpng -ljpeg
+
+# Debug flags: Disables optimization (-g) and adds info for debuggers.
+# Like setting `log_level = DEBUG`.
 CFLAGS_DEBUG = -DDEBUG -g3
 LFLAGS_DEBUG =
 
-#CFLAGS_RELEASE = -O3 -DRELEASE -funroll-loops -ffast-math -g
-#LFLAGS_RELEASE = -O3 -g
+# Release flags: Tells the compiler to optimize the code for speed (-O3).
+# High optimization makes the code run fast but compile slow.
 CFLAGS_RELEASE = -O3 -DRELEASE -funroll-loops -ffast-math -g
 LFLAGS_RELEASE = -O3 -g
 
-SRC = Src/
-BIN = Bin/Linux/
-#INCLUDE = /usr/include/
-INCLUDE = .
+# =============================================================================
+# 4. PATH DEFINITIONS
+# =============================================================================
+SRC = Src/       # Source code folder
+BIN = Bin/Linux/ # Destination folder for binaries and object files
+INCLUDE = .      # Where to look for header (.h) files. "." means current dir.
 
+# Map logical compiler names to actual shell commands.
 ifeq ($(COMPILER),gcc)
-	CC=gcc
-	CXX=g++
+	CC=gcc   # C compiler
+	CXX=g++  # C++ compiler
 else ifeq ($(COMPILER),gcc-11)
 	CC=gcc-11
 	CXX=g++-11
@@ -69,8 +101,16 @@ else
 	CXX=clang++
 endif
 
-MD=mkdir
+MD=mkdir         # Command to create directories
 
+# =============================================================================
+# 5. OBJECT FILE MAPPING
+# This part uses Makefile functions. 
+# $(basename ...) removes ".cpp".
+# $(addsuffix .o, ...) adds ".o" to the end.
+# $(addprefix $(BIN), ...) puts the file in the output folder.
+# Result: PR_SOURCE "Main.cpp" becomes "Bin/Linux/Main.o"
+# =============================================================================
 PR_OBJECTS=$(addprefix $(BIN), $(addsuffix .o, $(basename $(PR_SOURCE))))
 PRC_OBJECTS=$(addprefix $(BIN), $(addsuffix .o, $(basename $(PRC_SOURCE))))
 PRS_OBJECTS=$(addprefix $(BIN), $(addsuffix .o, $(basename $(PRS_SOURCE))))
@@ -86,6 +126,13 @@ PTD_OBJECTS=$(addprefix $(BIN), $(addsuffix .o, $(basename $(PTD_SOURCE))))
 SN_OBJECTS=$(addprefix $(BIN), $(addsuffix .o, $(basename $(SN_SOURCE))))
 
 
+# =============================================================================
+# 6. BUILD RECIPES
+# Formatting: "Target: Dependencies"
+#             "(tab) Command to run"
+# =============================================================================
+
+# Default "all" recipe: Builds every executable.
 all: CFLAGS += $(CFLAGS_RELEASE)
 all: LFLAGS += $(LFLAGS_RELEASE)
 all: make_dir
@@ -180,11 +227,18 @@ pointstodisks: LFLAGS += $(LFLAGS_RELEASE)
 pointstodisks: make_dir
 pointstodisks: $(BIN)$(PTD_TARGET)
 
+# Build only ScaleNormals
 scalenormals: CFLAGS += $(CFLAGS_RELEASE)
 scalenormals: LFLAGS += $(LFLAGS_RELEASE)
 scalenormals: make_dir
 scalenormals: $(BIN)$(SN_TARGET)
 
+# =============================================================================
+# 7. MAINTENANCE AND CLEANUP
+# =============================================================================
+
+# "clean" is like a reset command. It deletes all generated files.
+# Very useful if you get weird errors after changing header files.
 clean:
 	rm -rf $(BIN)$(PR_TARGET)
 	rm -rf $(BIN)$(PRC_TARGET)
@@ -212,16 +266,24 @@ clean:
 	rm -rf $(SN_OBJECTS)
 	cd PNG  && make clean
 
+# Helper recipe to create the output directory if it doesn't exist.
 make_dir:
 	$(MD) -p $(BIN)
 
+# Link the PoissonRecon executable.
+# Step 1: Call make inside PNG/ folder.
+# Step 2: Combine object files (.o) into the final executable.
+# $@: The Target name (Bin/Linux/PoissonRecon)
+# -L: Where to search for library files.
 $(BIN)$(PR_TARGET): $(PR_OBJECTS)
 	cd PNG  && make COMPILER=$(COMPILER)
 	$(CXX) -pthread -o $@ $(PR_OBJECTS) -L$(BIN) $(LFLAGS) $(LFLAGS_IMG)
 
+# Link PoissonReconClient (requires Boost library).
 $(BIN)$(PRC_TARGET): $(PRC_OBJECTS)
 	$(CXX) -pthread -o $@ $(PRC_OBJECTS) -L$(BIN) -lboost_system $(LFLAGS)
 
+# Link PoissonReconServer (requires Boost library).
 $(BIN)$(PRS_TARGET): $(PRS_OBJECTS)
 	$(CXX) -pthread -o $@ $(PRS_OBJECTS) -L$(BIN) -lboost_system $(LFLAGS)
 
@@ -260,9 +322,17 @@ $(BIN)$(PTD_TARGET): $(PTD_OBJECTS)
 $(BIN)$(SN_TARGET): $(SN_OBJECTS)
 	$(CXX) -pthread -o $@ $(SN_OBJECTS) -L$(BIN) $(LFLAGS)
 
+# Patterns for compilation:
+# These tell the system HOW to turn a single source file into a single object file.
+
+# For C files:
+# $<: The FIRST dependency (the .c file)
+# $@: The Target (the .o file)
 $(BIN)%.o: $(SRC)%.c
 	$(CC) -c -o $@ -I$(INCLUDE) $<
 
+# For C++ files:
+# This actually "executes" the compiler command.
 $(BIN)%.o: $(SRC)%.cpp
 	$(CXX) -c -o $@ $(CFLAGS) -I$(INCLUDE) $<
 
