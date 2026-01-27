@@ -36,8 +36,8 @@ class PoissonReconConfig:
     cg_accuracy: float = 1e-3
     """CG Solver accuracy (default: 1e-3)"""
     
-    point_weight: float = 4.0
-    """Interpolation weight (default: 4.0)"""
+    point_weight: Optional[float] = None
+    """Interpolation weight (default: 2.0 * Degree)"""
     
     samples_per_node: float = 1.5
     """Minimum number of samples per node (default: 1.5)"""
@@ -72,8 +72,8 @@ class PoissonReconConfig:
     degree: int = 1
     """B-Spline degree (default: 1)"""
     
-    b_type: int = 2
-    """Boundary type (1: Free, 2: Dirichlet, 3: Neumann) (default: 2)"""
+    b_type: int = 3
+    """Boundary type (1: Free, 2: Dirichlet, 3: Neumann) (default: 3)"""
     
     # Boolean flags
     density: bool = False
@@ -107,7 +107,8 @@ class PoissonReconConfig:
         args.extend(["--depth", str(self.depth)])
         args.extend(["--fullDepth", str(self.full_depth)])
         args.extend(["--cgAccuracy", str(self.cg_accuracy)])
-        args.extend(["--pointWeight", str(self.point_weight)])
+        if self.point_weight is not None:
+            args.extend(["--pointWeight", str(self.point_weight)])
         args.extend(["--samplesPerNode", str(self.samples_per_node)])
         args.extend(["--scale", str(self.scale)])
         args.extend(["--iters", str(self.iters)])
