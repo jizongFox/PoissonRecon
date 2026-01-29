@@ -4,6 +4,13 @@ Python bindings for the Screened Poisson Surface Reconstruction algorithm.
 
 ## Installation
 
+### Quick
+
+```bash
+pip install "git+https://github.com/jizongFox/PoissonRecon.git#subdirectory=pybind"
+```
+
+
 ### Prerequisites
 
 ```bash
