@@ -1,12 +1,15 @@
 [build-system]
-requires = ["scikit-build-core>=0.11.0", "pybind11", "cmake>=3.15,<4",]
+requires = [
+    "scikit-build-core>=0.11.0",
+    "pybind11",
+    "cmake>=3.15,<4",
+]
 build-backend = "scikit_build_core.build"
 
 [project]
 name = "poisson-recon"
 version = "0.1.0"
 description = "Python bindings for Screened Poisson Surface Reconstruction"
-# Now relative to python/ folder
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [
@@ -20,11 +23,10 @@ dependencies = [
 poisson-recon = "poisson_recon.cli:entry_point"
 
 [tool.scikit-build]
-# Point to root directory where main CMakeLists.txt is
 cmake.source-dir = ".."
-cmake.args = []
-install.components = [""] 
+
+# Build only the Python extension instead of all PoissonRecon executables.
+build.targets = ["poisson_recon_cpp"]
 
 [tool.scikit-build.wheel]
-# Looking for package in current folder
 packages = ["poisson_recon"]
